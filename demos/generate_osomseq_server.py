@@ -62,7 +62,10 @@ def make_predictions(args):
     totnum = get_imgnum()
     st = time.time()
     count = 0
-    with tf.Session() as sess:
+
+    addconfig = tf.ConfigProto()
+    addconfig.gpu_options.allow_growth = True
+    with tf.Session(config=addconfig) as sess:
         deepv2d.set_session(sess)
 
         predictions = []
