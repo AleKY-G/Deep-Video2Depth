@@ -63,8 +63,9 @@ def make_predictions(args):
     st = time.time()
     count = 0
 
-    addconfig = tf.ConfigProto()
-    addconfig.gpu_options.allow_growth = True
+    addconfig = tf.ConfigProto(
+        device_count={'GPU': 0}
+    )
     with tf.Session(config=addconfig) as sess:
         deepv2d.set_session(sess)
 
