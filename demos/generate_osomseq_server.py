@@ -70,7 +70,7 @@ def make_predictions(args):
         deepv2d.set_session(sess)
 
         predictions = []
-        for (images, intrinsics, test_frame) in db.odom_set_iterator():
+        for (images, intrinsics, test_frame) in db.odom_evalset_iterator():
             if not os.path.exists(os.path.join(args.dataset_dir, test_frame)):
                 print("skip %s" % test_frame)
                 break

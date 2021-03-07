@@ -186,6 +186,58 @@ class KittiRaw(object):
             data_blob = self._load_example(seq)
             yield data_blob['images'], data_blob['intrinsics'], test_frame
 
+    def odom_evalset_iterator(self, radius=2):
+        seqs = [
+            ['2011_10_03/2011_10_03_drive_0027', '000000', '004540'],
+            ['2011_09_30/2011_09_30_drive_0016', '000000', '000270'],
+            ['2011_09_30/2011_09_30_drive_0018', '000000', '002760'],
+            ['2011_09_30/2011_09_30_drive_0027', '000000', '001100']
+        ]
+        test_list = list()
+        for seqname, sidx, eid in seqs:
+            sidx = int(sidx)
+            eidx = int(eid)
+            for idx in range(sidx, eidx):
+                test_list.append("{}_sync/image_02/data/{}.png".format(seqname, str(idx).zfill(10)))
+
+        import random
+        random.shuffle(test_list)
+
+        self.poses = {}
+        self.calib = {}
+        for test_frame in test_list:
+            comps = test_frame.split('/')
+            drive = comps[1].replace('_sync', '')
+            frame = int(comps[4].replace('.png', ''))
+
+            if drive not in self.poses:
+                trajectory = self._read_oxts_data(drive)
+                proj_c2p, proj_v2c, imu2cam = self._read_raw_calib_data(drive)
+
+                for i in range(len(trajectory)):
+                    trajectory[i] = np.dot(imu2cam, util.inv_SE3(trajectory[i]))
+                    trajectory[i][0:3, 3] *= self.args['scale']
+
+                self.poses[drive] = trajectory
+                self.calib[drive] = (proj_c2p, proj_v2c, imu2cam)
+
+            else:
+                trajectory = self.poses[drive]
+
+            seq = []
+            for j in range(frame-radius, frame+radius+1):
+                j = min(max(0, j), len(trajectory)-1)
+                frame = {
+                    'image': self._fetch_image_path(drive, j),
+                    'velo': self._fetch_velo_path(drive, j),
+                    'pose': self.poses[drive][j],
+                    'drive': drive,
+                }
+                seq.append(frame)
+
+            data_blob = self._load_example(seq)
+            yield data_blob['images'], data_blob['intrinsics'], test_frame
+
     def eigen_set_iterator(self, radius=2):
         filename = '/home/shengjie/Documents/Project_SemanticDepth/splits/eigen_full/test_files.txt'
         with open(filename, 'r') as f:
