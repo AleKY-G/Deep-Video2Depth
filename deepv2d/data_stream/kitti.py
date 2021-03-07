@@ -148,6 +148,9 @@ class KittiRaw(object):
             for idx in range(sidx, eidx):
                 test_list.append("{}_sync/image_02/data/{}.png".format(seqname, str(idx).zfill(10)))
 
+        import random
+        random.shuffle(test_list)
+
         self.poses = {}
         self.calib = {}
         for test_frame in test_list:

@@ -71,6 +71,19 @@ def make_predictions(args):
                 print("skip %s" % test_frame)
                 break
 
+            depthsvfolder = os.path.join(odomoutput, test_frame.split('/')[0], test_frame.split('/')[1], 'depthpred')
+            posesvfolder = os.path.join(odomoutput, test_frame.split('/')[0], test_frame.split('/')[1], 'posepred')
+            os.makedirs(depthsvfolder, exist_ok=True)
+            os.makedirs(posesvfolder, exist_ok=True)
+
+            depthsvname = test_frame.split('/')[-1]
+            posesvname = os.path.join(posesvfolder, "{}.txt".format(depthsvname.split('.')[0]))
+
+            if os.path.exists(posesvname):
+                print("%s exists" % test_frame)
+                totnum = totnum - 1
+                continue
+
             depth_predictions, poses = deepv2d(images, intrinsics, iters=args.n_iters)
             pred = process_for_evaluation(depth_predictions[0], scale, crop)
 
@@ -78,15 +91,10 @@ def make_predictions(args):
             gtw, gth = rgb.size
             predresized = cv2.resize(pred, (gtw, gth))
 
-            depthsvfolder = os.path.join(odomoutput, test_frame.split('/')[0], test_frame.split('/')[1], 'depthpred')
-            posesvfolder = os.path.join(odomoutput, test_frame.split('/')[0], test_frame.split('/')[1], 'posepred')
-            os.makedirs(depthsvfolder, exist_ok=True)
-            os.makedirs(posesvfolder, exist_ok=True)
 
-            depthsvname = test_frame.split('/')[-1]
             Image.fromarray((np.array(predresized).astype(np.float32) * 256.0).astype(np.uint16)).save(os.path.join(depthsvfolder, depthsvname))
 
-            posesvname = os.path.join(posesvfolder, "{}.txt".format(depthsvname.split('.')[0]))
+
             with open(posesvname, "w") as text_file:
                 for pose in poses:
                     for num in list(pose.flatten().tolist()):
