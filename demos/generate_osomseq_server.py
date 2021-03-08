@@ -95,9 +95,7 @@ def make_predictions(args):
             gtw, gth = rgb.size
             predresized = cv2.resize(pred, (gtw, gth))
 
-
             Image.fromarray((np.array(predresized).astype(np.float32) * 256.0).astype(np.uint16)).save(os.path.join(depthsvfolder, depthsvname))
-
 
             with open(posesvname, "w") as text_file:
                 for pose in poses:
