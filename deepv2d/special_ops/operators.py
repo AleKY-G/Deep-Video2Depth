@@ -101,6 +101,7 @@ def backproject_cat(Ts, depths, intrinsics, fmaps):
     # make depth volume
     depths = tf.reshape(depths, [1, 1, dd, 1, 1])
     depths = tf.tile(depths, [batch, num, 1, ht, wd])
+    # depths = tf.Print(depths, [depths[0, 0, :, 20, 150]], "Depth 0 X\n", summarize=100000)
 
     ii, jj = tf.meshgrid(tf.range(1), tf.range(0, num))
     ii = tf.reshape(ii, [-1])
@@ -109,6 +110,10 @@ def backproject_cat(Ts, depths, intrinsics, fmaps):
     # compute backprojected coordinates
     Tij = Ts.gather(jj) * Ts.gather(ii).inv()
     coords = Tij.transform(depths, intrinsics)
+    # coords = tf.Print(coords, [coords[0, 1, :, 20, 150, 0]], "Frame 1 X\n", summarize=100000)
+    # coords = tf.Print(coords, [coords[0, 1, :, 20, 150, 0]], "Frame 1 Y\n", summarize=100000)
+    # coords = tf.Print(coords, [coords[0, 0, :, 20, 150, 0]], "Frame 0 X\n", summarize=100000)
+    # coords = tf.Print(coords, [coords[0, 0, :, 20, 150, 0]], "Frame 0 Y\n", summarize=100000)
 
     if use_cuda_backproject:
         coords = tf.transpose(coords, [0, 3, 4, 2, 1, 5])
@@ -117,6 +122,14 @@ def backproject_cat(Ts, depths, intrinsics, fmaps):
 
     else:
         coords = tf.transpose(coords, [0, 1, 3, 4, 2, 5])
+        # coords1 = coords[0, 0, 10, 10, :, 0]
+        # coords1 = tf.Print(coords1, [coords1])
+        # coords2 = coords[0, 0, 10, 10, :, 1]
+        # coords2 = tf.Print(coords2, [coords2])
+
+        # coords = tf.Print(coords, [coords[0, 0, 20, 150, :, 1]], "Frame 0 Y\n", summarize=100000)
+        # coords = tf.Print(coords, [coords[0, 0, 20, 150, :, 0]], "Frame 1 X\n", summarize=100000)
+        # coords = tf.Print(coords, [coords[0, 0, 20, 150, :, 1]], "Frame 1 Y\n", summarize=100000)
         volume = bilinear_sampler(fmaps, coords, batch_dims=2)
         volume = tf.transpose(volume, [0, 2, 3, 4, 1, 5])
 

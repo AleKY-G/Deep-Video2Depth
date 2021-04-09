@@ -16,7 +16,7 @@ import pickle
 
 from core import config
 from deepv2d import DeepV2D
-from data_stream.kitti import KittiRaw
+from data_stream.kitti_stereo15 import KittiRaw
 from PIL import Image
 
 
@@ -29,11 +29,11 @@ def process_for_evaluation(depth, scale, crop):
 
 def make_predictions(args):
     """ Run inference over the test images """
-    kittiroot = '/media/shengjie/disk1/data/Kitti'
-    odomoutput = '/media/shengjie/disk1/Prediction/Deepv2d_eigen'
-    # import shutil
-    # if os.path.exists(odomoutput):
-    #     shutil.rmtree(odomoutput)
+    kittiroot = '/media/shengjie/disk1/data/kitti_stereo15_organized/raw'
+    odomoutput = '/media/shengjie/disk1/Prediction/Deepv2d_stereo15'
+    import shutil
+    if os.path.exists(odomoutput):
+        shutil.rmtree(odomoutput)
 
     np.random.seed(1234)
     cfg = config.cfg_from_file(args.cfg)
@@ -48,7 +48,7 @@ def make_predictions(args):
     with tf.Session() as sess:
         deepv2d.set_session(sess)
 
-        for (images, intrinsics, test_frame) in db.eigen_set_iterator():
+        for (images, intrinsics, test_frame) in db.stereo15_set_iterator():
             # if not os.path.exists(os.path.join(kittiroot, test_frame)):
             #     print("skip %s" % test_frame)
             #     continue
