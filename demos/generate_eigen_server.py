@@ -30,10 +30,10 @@ def estimate_runningtime(args):
     st = time.time()
     count = 0
 
-    addconfig = tf.ConfigProto(
-        device_count={'GPU': 0}
-    )
-    with tf.Session(config=addconfig) as sess:
+    # addconfig = tf.ConfigProto(
+    #     device_count={'GPU': 0}
+    # )
+    with tf.Session() as sess:
         deepv2d.set_session(sess)
         for (images, intrinsics, test_frame) in db.eigen_set_iterator():
             depth_predictions, poses = deepv2d(images, intrinsics, iters=args.n_iters)
