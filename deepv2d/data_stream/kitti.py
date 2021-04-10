@@ -239,7 +239,7 @@ class KittiRaw(object):
             yield data_blob['images'], data_blob['intrinsics'], test_frame
 
     def eigen_set_iterator(self, radius=2):
-        filename = '/home/shengjie/Documents/Project_SemanticDepth/splits/eigen_full/test_files.txt'
+        filename = 'data/kitti_eigen_full/test_files.txt'
         with open(filename, 'r') as f:
             entries = f.readlines()
 
