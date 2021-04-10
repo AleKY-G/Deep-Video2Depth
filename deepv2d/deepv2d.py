@@ -83,7 +83,7 @@ class DeepV2D:
     def set_session(self, sess):
         self.sess = sess
         sess.run(tf.global_variables_initializer())
-        self.saver.restore(self.sess, self.ckpt)
+        # self.saver.restore(self.sess, self.ckpt)
 
         if self.use_fcrn:
             fcrn_vars = {}

@@ -46,7 +46,7 @@ def estimate_runningtime(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', default='cfgs/kitti.yaml', help='config file used to train the model')
-    parser.add_argument('--model', default='models/kitti.ckpt', help='path to model checkpoint')
+    parser.add_argument('--model', default='', help='path to model checkpoint')
     parser.add_argument('--dataset_dir', default='data/kitti/raw', help='config file used to train the model')
     parser.add_argument('--viz', action="store_true", help='display depth maps during inference')
     parser.add_argument('--n_iters', type=int, default=5, help='number of video frames to use for reconstruction')
