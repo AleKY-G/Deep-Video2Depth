@@ -27,8 +27,8 @@ class KittiRaw(object):
         self.args = args
         self.mode = mode
 
-        self._collect_scenes()
-        self._build_training_set_index()
+        # self._collect_scenes()
+        # self._build_training_set_index()
 
 
     def __len__(self):
