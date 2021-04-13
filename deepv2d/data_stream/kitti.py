@@ -53,8 +53,8 @@ class KittiRaw(object):
             images.append(img)
             poses.append(frame['pose'])
 
-        depth = self._load_depth(sequence[0]['velo'], images[0], scene)
-        filled = util.fill_depth(depth)
+        # depth = self._load_depth(sequence[0]['velo'], images[0], scene)
+        # filled = util.fill_depth(depth)
 
         intrinsics = self._load_intrinsics(img, scene).astype("float32")
         for i in range(len(images)):
@@ -63,15 +63,15 @@ class KittiRaw(object):
 
         images = np.array(images, dtype="float32")
         poses = np.array(poses, dtype="float32")
-        depth = depth.astype("float32")
-        filled = filled.astype("float32")
+        # depth = depth.astype("float32")
+        # filled = filled.astype("float32")
 
         example_blob = {
             'images': images,
-            'depth': depth,
-            'filled': filled,
+            # 'depth': depth,
+            # 'filled': filled,
             'poses': poses,
-            'pred': filled,
+            # 'pred': filled,
             'intrinsics': intrinsics,
         }
 
