@@ -274,7 +274,6 @@ class KittiRaw(object):
                 j = min(max(0, j), len(trajectory)-1)
                 frame = {
                     'image': self._fetch_image_path(drive, j),
-                    'velo': self._fetch_velo_path(drive, j),
                     'pose': self.poses[drive][j],
                     'drive': drive,
                 }
