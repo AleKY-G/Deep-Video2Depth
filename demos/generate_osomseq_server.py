@@ -57,10 +57,11 @@ def make_predictions(args):
     st = time.time()
     count = 0
 
-    addconfig = tf.ConfigProto(
-        device_count={'GPU': 0}
-    )
-    with tf.Session(config=addconfig) as sess:
+    # addconfig = tf.ConfigProto(
+    #     device_count={'GPU': 0}
+    # )
+    # with tf.Session(config=addconfig) as sess:
+    with tf.Session() as sess:
         deepv2d.set_session(sess)
 
         for (images, intrinsics, test_frame) in db.odom_evalset_iterator():
