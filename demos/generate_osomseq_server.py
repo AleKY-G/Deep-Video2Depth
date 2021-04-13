@@ -28,15 +28,9 @@ def process_for_evaluation(depth, scale, crop):
 def get_imgnum():
     seqs = [
         ['2011_10_03/2011_10_03_drive_0027', '000000', '004540'],
-        ['2011_10_03/2011_10_03_drive_0042', '000000', '001100'],
-        ['2011_10_03/2011_10_03_drive_0034', '000000', '004660'],
         ['2011_09_30/2011_09_30_drive_0016', '000000', '000270'],
         ['2011_09_30/2011_09_30_drive_0018', '000000', '002760'],
-        ['2011_09_30/2011_09_30_drive_0020', '000000', '001100'],
-        ['2011_09_30/2011_09_30_drive_0027', '000000', '001100'],
-        ['2011_09_30/2011_09_30_drive_0028', '001100', '005170'],
-        ['2011_09_30/2011_09_30_drive_0033', '000000', '001590'],
-        ['2011_09_30/2011_09_30_drive_0034', '000000', '001200']
+        ['2011_09_30/2011_09_30_drive_0027', '000000', '001100']
     ]
     test_list = list()
     for seqname, sidx, eid in seqs:
@@ -69,7 +63,6 @@ def make_predictions(args):
     with tf.Session(config=addconfig) as sess:
         deepv2d.set_session(sess)
 
-        predictions = []
         for (images, intrinsics, test_frame) in db.odom_evalset_iterator():
             if not os.path.exists(os.path.join(args.dataset_dir, test_frame)):
                 print("skip %s" % test_frame)
@@ -107,7 +100,7 @@ def make_predictions(args):
             dr = time.time() - st
             lefth = dr / count / 60 / 60 * (totnum - count)
             print("Img idx:%d, left hours: %f" % (count, lefth))
-        return predictions
+        return
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -120,4 +113,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # run inference on the test images
-    predictions = make_predictions(args)
+    make_predictions(args)
