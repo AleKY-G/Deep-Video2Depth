@@ -27,17 +27,17 @@ def estimate_runningtime(args):
 
     deepv2d = DeepV2D(cfg, args.model, use_fcrn=False, mode='keyframe')
 
-    st = time.time()
-    count = 0
-
+    totnum = 0
+    dr = 0
     with tf.Session() as sess:
         deepv2d.set_session(sess)
         for (images, intrinsics, test_frame) in db.eigen_set_iterator():
-            depth_predictions, poses = deepv2d(images, intrinsics, iters=args.n_iters)
 
-            count += 1
-            dr = time.time() - st
-            print("Img idx:%d, ave time: %f s" % (count, dr / count))
+            st = time.time()
+            depth_predictions, poses = deepv2d(images, intrinsics, iters=args.n_iters)
+            dr += time.time() - st
+            totnum += 1
+            print("%d Samples, Ave sec/frame: %f" % (totnum, dr / totnum))
         return
 
 if __name__ == '__main__':
