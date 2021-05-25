@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append('deepv2d')
 
 import numpy as np
@@ -31,8 +32,7 @@ def load_test_sequence(path, n_frames=-1):
     if n_frames > 0:
         inds = np.random.choice(inds, n_frames, replace=False)
 
-    inds = [0] + inds.tolist() # put keyframe image first
-    inds = [0] + [1]
+    inds = [0] + [1]  # put keyframe image first
     images = [images[i] for i in inds]
 
     images = np.stack(images).astype(np.float32)
@@ -47,37 +47,28 @@ def make_predictions(args):
     np.random.seed(1234)
     cfg = config.cfg_from_file(args.cfg)
 
-    deepv2d = DeepV2D(cfg, args.model, use_fcrn=args.fcrn, 
-        mode=args.mode, is_calibrated=(not args.uncalibrated))
+    deepv2d = DeepV2D(cfg, args.model, use_fcrn=args.fcrn,
+                      mode=args.mode, is_calibrated=(not args.uncalibrated))
 
     with tf.Session() as sess:
         deepv2d.set_session(sess)
 
-        test_path = '/media/shengjie/disk1/data/nyutest/nyu'
-        sv_path = '/media/shengjie/disk1/data/nyutest/deepv2d_pred_fullview'
+        test_path = '/localscratch/zhusheng/nyutest/nyu'
         test_paths = sorted(os.listdir(test_path))
         num_test = len(test_paths)
 
         predictions = []
         for test_id in tqdm(range(num_test)):
-            svpath = os.path.join(sv_path, '{}.png'.format(str(test_id).zfill(5)))
-            if os.path.exists(svpath):
-                continue
             images, intrinsics = load_test_sequence(os.path.join(test_path, test_paths[test_id]), args.n_frames)
             depth_predictions, _ = deepv2d(images, intrinsics, iters=args.n_iters)
-        
+
             keyframe_depth = depth_predictions[0]
             keyframe_image = images[0]
             predictions.append(keyframe_depth.astype(np.float32))
 
-            keyframe_depth_sv = copy.deepcopy(keyframe_depth)
-            keyframe_depth_sv = (keyframe_depth_sv * 1000).astype(np.uint16)
-            Image.fromarray(keyframe_depth_sv).save(svpath)
-
-
             if args.viz:
                 image_and_depth = vis.create_image_depth_figure(keyframe_image, keyframe_depth)
-                cv2.imshow('image', image_and_depth/255.0)
+                cv2.imshow('image', image_and_depth / 255.0)
                 cv2.waitKey(10)
 
         return predictions
@@ -85,8 +76,8 @@ def make_predictions(args):
 
 def evaluate(groundtruth, predictions):
     """ nyu evaluations """
-    
-    crop = [20, 459, 24, 615] # eigen crop
+
+    crop = [20, 459, 24, 615]  # eigen crop
     gt_list = []
     pr_list = []
 
@@ -108,12 +99,11 @@ def evaluate(groundtruth, predictions):
         pr_list.append(depth_pr)
 
     depth_results = eval_utils.compute_depth_errors(gt_list, pr_list)
-    print(("{:>10}, "*len(depth_results)).format(*depth_results.keys()))
-    print(("{:10.4f}, "*len(depth_results)).format(*depth_results.values()))
+    print(("{:>10}, " * len(depth_results)).format(*depth_results.keys()))
+    print(("{:10.4f}, " * len(depth_results)).format(*depth_results.values()))
 
-    
+
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', default='cfgs/nyu.yaml', help='config file used to train the model')
     parser.add_argument('--mode', default='keyframe', help='config file used to train the model')
@@ -130,9 +120,9 @@ if __name__ == '__main__':
 
     # run inference on the test images
     predictions = make_predictions(args)
-    groundtruth = np.load('/media/shengjie/disk1/data/nyutest/nyu_groundtruth.npy')
+    groundtruth = np.load('/localscratch/zhusheng/nyutest/nyu_groundtruth.npy')
 
     # evaluate on NYUv2 test set
     evaluate(groundtruth, predictions)
-    
+
 
