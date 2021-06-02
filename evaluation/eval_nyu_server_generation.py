@@ -66,9 +66,9 @@ def make_predictions(args):
             keyframe_image = images[0]
             predictions.append(keyframe_depth.astype(np.float32))
 
-            keyframe_image = keyframe_image * 1000
-            keyframe_image = np.array(keyframe_image).astype(np.uint16)
-            Image.fromarray(keyframe_image).save(os.path.join(args.export_root, "{}.png".format(str(test_id).zfill(5))))
+            keyframe_depth_sv = copy.deepcopy(keyframe_depth)
+            keyframe_depth_sv = (keyframe_depth_sv * 1000).astype(np.uint16)
+            Image.fromarray(keyframe_depth_sv).save(os.path.join(args.export_root, "{}.png".format(str(test_id).zfill(5))))
             print("{} finished.".format(test_paths[test_id]))
             if args.viz:
                 image_and_depth = vis.create_image_depth_figure(keyframe_image, keyframe_depth)
