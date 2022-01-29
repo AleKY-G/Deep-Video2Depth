@@ -84,7 +84,7 @@ def evaluate(groundtruth):
     pr_list = []
 
     num_test = groundtruth.shape[0]
-    sv_path = '/media/shengjie/disk1/data/nyutest/deepv2d_pred_fullview'
+    sv_path = '/media/shengjie/disk1/Prediction/ablation_depth_predictions/ours/nyuv2'
     for _, i in enumerate(tqdm.tqdm(range(num_test))):
         svpath = os.path.join(sv_path, '{}.png'.format(str(i).zfill(5)))
         if not os.path.exists(svpath):

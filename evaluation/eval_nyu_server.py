@@ -47,13 +47,12 @@ def make_predictions(args):
     np.random.seed(1234)
     cfg = config.cfg_from_file(args.cfg)
 
-    deepv2d = DeepV2D(cfg, args.model, use_fcrn=args.fcrn,
-                      mode=args.mode, is_calibrated=(not args.uncalibrated))
+    deepv2d = DeepV2D(cfg, args.model, use_fcrn=args.fcrn, mode=args.mode, is_calibrated=(not args.uncalibrated))
 
     with tf.Session() as sess:
         deepv2d.set_session(sess)
 
-        test_path = '/localscratch/zhusheng/nyutest/nyu'
+        test_path = '/scratch/zhusheng/nyutest/nyu'
         test_paths = sorted(os.listdir(test_path))
         num_test = len(test_paths)
 
@@ -120,7 +119,7 @@ if __name__ == '__main__':
 
     # run inference on the test images
     predictions = make_predictions(args)
-    groundtruth = np.load('/localscratch/zhusheng/nyutest/nyu_groundtruth.npy')
+    groundtruth = np.load('/scratch/zhusheng/nyutest/nyu_groundtruth.npy')
 
     # evaluate on NYUv2 test set
     evaluate(groundtruth, predictions)

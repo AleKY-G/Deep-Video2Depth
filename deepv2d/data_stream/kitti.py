@@ -128,6 +128,47 @@ class KittiRaw(object):
             data_blob = self._load_example(seq)
             yield data_blob['images'], data_blob['intrinsics'], test_frame
 
+    def test_set_iterator_twoview(self):
+        test_list = []
+        with open('data/kitti/test_files_eigen.txt') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                test_list.append(row[0])
+
+        self.poses = {}
+        self.calib = {}
+        for test_frame in test_list:
+            comps = test_frame.split('/')
+            drive = comps[1].replace('_sync', '')
+            frame_idx = int(comps[4].replace('.png', ''))
+
+            if drive not in self.poses:
+                trajectory = self._read_oxts_data(drive)
+                proj_c2p, proj_v2c, imu2cam = self._read_raw_calib_data(drive)
+
+                for i in range(len(trajectory)):
+                    trajectory[i] = np.dot(imu2cam, util.inv_SE3(trajectory[i]))
+                    trajectory[i][0:3, 3] *= self.args['scale']
+
+                self.poses[drive] = trajectory
+                self.calib[drive] = (proj_c2p, proj_v2c, imu2cam)
+
+            else:
+                trajectory = self.poses[drive]
+
+            seq = []
+            for j in [frame_idx, frame_idx, frame_idx, frame_idx + 1, frame_idx + 1]:
+                j = min(max(0, j), len(trajectory)-1)
+                frame = {
+                    'image': self._fetch_image_path(drive, j),
+                    'pose': self.poses[drive][j],
+                    'drive': drive,
+                }
+                seq.append(frame)
+
+            data_blob = self._load_example(seq)
+            yield data_blob['images'], data_blob['intrinsics'], test_frame
+
     def odom_set_iterator(self, radius=2):
         seqs = [
             ['2011_10_03/2011_10_03_drive_0027', '000000', '004540'],
@@ -238,6 +279,50 @@ class KittiRaw(object):
             yield data_blob['images'], data_blob['intrinsics'], test_frame
 
     def eigen_set_iterator(self, radius=2):
+        filename = 'data/kitti_eigen_full/test_files.txt'
+        with open(filename, 'r') as f:
+            entries = f.readlines()
+
+        test_list = list()
+        for entry in entries:
+            seq, frm, dir = entry[:-1].split(' ')
+            test_list.append("{}/image_02/data/{}.png".format(seq, frm.zfill(10)))
+
+        self.poses = {}
+        self.calib = {}
+        for test_frame in test_list:
+            comps = test_frame.split('/')
+            drive = comps[1].replace('_sync', '')
+            frame = int(comps[4].replace('.png', ''))
+
+            if drive not in self.poses:
+                trajectory = self._read_oxts_data(drive)
+                proj_c2p, proj_v2c, imu2cam = self._read_raw_calib_data(drive)
+
+                for i in range(len(trajectory)):
+                    trajectory[i] = np.dot(imu2cam, util.inv_SE3(trajectory[i]))
+                    trajectory[i][0:3, 3] *= self.args['scale']
+
+                self.poses[drive] = trajectory
+                self.calib[drive] = (proj_c2p, proj_v2c, imu2cam)
+
+            else:
+                trajectory = self.poses[drive]
+
+            seq = []
+            for j in range(frame-radius, frame+radius+1):
+                j = min(max(0, j), len(trajectory)-1)
+                frame = {
+                    'image': self._fetch_image_path(drive, j),
+                    'pose': self.poses[drive][j],
+                    'drive': drive,
+                }
+                seq.append(frame)
+
+            data_blob = self._load_example(seq)
+            yield data_blob['images'], data_blob['intrinsics'], test_frame
+
+    def tracking_set_iterator(self, radius=2):
         filename = 'data/kitti_eigen_full/test_files.txt'
         with open(filename, 'r') as f:
             entries = f.readlines()

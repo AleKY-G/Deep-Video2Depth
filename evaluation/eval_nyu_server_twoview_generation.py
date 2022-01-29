@@ -68,6 +68,7 @@ def make_predictions(args):
 
             keyframe_depth_sv = copy.deepcopy(keyframe_depth)
             keyframe_depth_sv = (keyframe_depth_sv * 1000).astype(np.uint16)
+            print(keyframe_depth_sv.shape)
             Image.fromarray(keyframe_depth_sv).save(os.path.join(args.export_root, "{}.png".format(str(test_id).zfill(5))))
             print("{} finished.".format(test_paths[test_id]))
             if args.viz:

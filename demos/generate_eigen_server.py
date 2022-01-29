@@ -32,7 +32,6 @@ def estimate_runningtime(args):
     with tf.Session() as sess:
         deepv2d.set_session(sess)
         for (images, intrinsics, test_frame) in db.eigen_set_iterator():
-
             st = time.time()
             depth_predictions, poses = deepv2d(images, intrinsics, iters=args.n_iters)
             dr += time.time() - st
