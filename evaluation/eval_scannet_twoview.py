@@ -44,7 +44,7 @@ def make_predictions(args):
         depth_groundtruth, pose_groundtruth = [], []
         db = ScanNet(args.dataset_dir)
 
-        for test_id, test_blob in enumeratetqdm.tqdm(db.test_set_iterator()):
+        for test_id, test_blob in enumerate(tqdm.tqdm(db.test_set_iterator())):
             images, intrinsics = test_blob['images'], test_blob['intrinsics']
             depth_pred, poses_pred = deepv2d(images, intrinsics)
 
