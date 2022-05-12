@@ -15,7 +15,7 @@ import tqdm
 
 import vis
 from core import config
-from data_stream.scannet import ScanNet
+from data_stream.scannet_twoview import ScanNet
 from deepv2d import DeepV2D
 
 import eval_utils
