@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append('deepv2d')
 
 import numpy as np
@@ -15,7 +16,7 @@ import glob
 import vis
 from core import config
 from deepv2d import DeepV2D
-import eval_utils
+import evaluation.eval_utils
 import copy
 import PIL.Image as Image
 
@@ -25,18 +26,31 @@ def load_test_sequence(path, n_frames=-1):
     images = []
     for imfile in sorted(glob.glob(os.path.join(path, "*.png"))):
         img = cv2.imread(imfile)
+        img = cv2.resize(img, (1088, 192))
         images.append(img)
 
     inds = np.arange(1, len(images))
     if n_frames > 0:
         inds = np.random.choice(inds, n_frames, replace=False)
 
-    inds = [0] + inds.tolist() # put keyframe image first
-    inds = [0] + [1]
+    inds = [0] + inds[0:4].tolist()  # put keyframe image first
     images = [images[i] for i in inds]
 
     images = np.stack(images).astype(np.float32)
     intrinsics = np.loadtxt(os.path.join(path, 'intrinsics.txt'))
+    intrinsicM = np.eye(3)
+    intrinsicM[0, 0] = intrinsics[0]
+    intrinsicM[0, 2] = intrinsics[2]
+    intrinsicM[1, 1] = intrinsics[1]
+    intrinsicM[1, 2] = intrinsics[3]
+    resizeM = np.eye(3)
+    resizeM[0, 0] = 1088 / 640
+    resizeM[1, 1] = 192 / 480
+    intrinsicM = resizeM @ intrinsicM
+    intrinsics[0] = intrinsicM[0, 0]
+    intrinsics[1] = intrinsicM[1, 1]
+    intrinsics[2] = intrinsicM[0, 2]
+    intrinsics[3] = intrinsicM[1, 2]
 
     return images, intrinsics
 
@@ -47,14 +61,15 @@ def make_predictions(args):
     np.random.seed(1234)
     cfg = config.cfg_from_file(args.cfg)
 
-    deepv2d = DeepV2D(cfg, args.model, use_fcrn=args.fcrn, 
-        mode=args.mode, is_calibrated=(not args.uncalibrated))
+    deepv2d = DeepV2D(cfg, args.model, use_fcrn=args.fcrn,
+                      mode=args.mode, is_calibrated=(not args.uncalibrated))
 
     with tf.Session() as sess:
         deepv2d.set_session(sess)
 
         test_path = '/media/shengjie/disk1/data/nyutest/nyu'
         sv_path = '/media/shengjie/disk1/Prediction/EvidentDepthCVPR22/rebuttal/nyuv2_deepv2d_kittitrained'
+        os.makedirs(sv_path, exist_ok=True)
         test_paths = sorted(os.listdir(test_path))
         num_test = len(test_paths)
 
@@ -65,19 +80,18 @@ def make_predictions(args):
                 continue
             images, intrinsics = load_test_sequence(os.path.join(test_path, test_paths[test_id]), args.n_frames)
             depth_predictions, _ = deepv2d(images, intrinsics, iters=args.n_iters)
-        
+
             keyframe_depth = depth_predictions[0]
             keyframe_image = images[0]
             predictions.append(keyframe_depth.astype(np.float32))
 
             keyframe_depth_sv = copy.deepcopy(keyframe_depth)
-            keyframe_depth_sv = (keyframe_depth_sv * 1000).astype(np.uint16)
-            Image.fromarray(keyframe_depth_sv).save(svpath)
-
+            keyframe_depth_sv = (keyframe_depth_sv * 256.0).astype(np.uint16)
+            Image.fromarray(keyframe_depth_sv).resize((640, 480)).save(svpath)
 
             if args.viz:
                 image_and_depth = vis.create_image_depth_figure(keyframe_image, keyframe_depth)
-                cv2.imshow('image', image_and_depth/255.0)
+                cv2.imshow('image', image_and_depth / 255.0)
                 cv2.waitKey(10)
 
         return predictions
@@ -85,8 +99,8 @@ def make_predictions(args):
 
 def evaluate(groundtruth, predictions):
     """ nyu evaluations """
-    
-    crop = [20, 459, 24, 615] # eigen crop
+
+    crop = [20, 459, 24, 615]  # eigen crop
     gt_list = []
     pr_list = []
 
@@ -108,12 +122,11 @@ def evaluate(groundtruth, predictions):
         pr_list.append(depth_pr)
 
     depth_results = eval_utils.compute_depth_errors(gt_list, pr_list)
-    print(("{:>10}, "*len(depth_results)).format(*depth_results.keys()))
-    print(("{:10.4f}, "*len(depth_results)).format(*depth_results.values()))
+    print(("{:>10}, " * len(depth_results)).format(*depth_results.keys()))
+    print(("{:10.4f}, " * len(depth_results)).format(*depth_results.values()))
 
-    
+
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', default='cfgs/nyu.yaml', help='config file used to train the model')
     parser.add_argument('--mode', default='keyframe', help='config file used to train the model')
@@ -134,5 +147,5 @@ if __name__ == '__main__':
 
     # evaluate on NYUv2 test set
     evaluate(groundtruth, predictions)
-    
+
 

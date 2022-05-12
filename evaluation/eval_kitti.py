@@ -49,7 +49,6 @@ def make_predictions(args):
             if not os.path.exists(os.path.join(semidensegtroot, test_frame.replace('/data', ''))):
                 print("skip %s" % test_frame)
                 continue
-
             depth_predictions, _ = deepv2d(images, intrinsics, iters=args.n_iters)
         
             keyframe_depth = depth_predictions[0]
